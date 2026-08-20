@@ -280,7 +280,7 @@ ruta_checkpoint = os.path.join('modelos_entrenados', f'mejor_modelo_{NOMBRE_ETIQ
 checkpoint = ModelCheckpoint(filepath=ruta_checkpoint, monitor='val_loss', save_best_only=True, mode='min', verbose=1)
 
 print("Iniciando entrenamiento...")
-history = model.fit(train_gen,validation_data=val_gen if len(validation_files) > 0 else None,epochs=200,verbose=1,callbacks=[early_stop, lr_reducer, checkpoint]
+history = model.fit(train_gen,validation_data=val_gen if len(validation_files) > 0 else None,epochs=200,verbose=1,callbacks=[early_stop, lr_reducer, checkpoint])
 
 # =============================================================================
 #  EVALUACIÓN Y GRÁFICAS
