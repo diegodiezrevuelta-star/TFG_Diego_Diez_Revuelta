@@ -110,7 +110,7 @@ print(f"Media {NOMBRE_ETIQUETA} Test:  {calcular_media(test_files):.2f}")
 print(f"Media {NOMBRE_ETIQUETA} Val:   {calcular_media(validation_files):.2f}")
 
 # =============================================================================
-#  ARQUITECTURA DEL EXTRACTOR CNN 
+#  ARQUITECTURA CNN-4
 # =============================================================================
 def sleepiness_cnn(insize_per_ep):
     # Declaramos el tensor de entrada
@@ -130,20 +130,14 @@ def sleepiness_cnn(insize_per_ep):
     x = layers.Dropout(0.1)(x)
 
     # ── BLOQUE 2: Escala de episodios NREM (minutos) ──
-    x = layers.Conv1D(
-        filters=32, kernel_size=35, strides=3, padding='same', use_bias=False,
-        kernel_regularizer=tf.keras.regularizers.l2(1e-5)
-    )(x)
+    x = layers.Conv1D(filters=32, kernel_size=35, strides=3, padding='same', use_bias=False, kernel_regularizer=tf.keras.regularizers.l2(1e-5))(x)
     x = layers.BatchNormalization()(x)
     x = layers.LeakyReLU(0.1)(x)
     x = layers.MaxPooling1D(pool_size=3)(x)
     x = layers.Dropout(0.1)(x)
 
     # ── BLOQUE 3: Tendencia nocturna global ──
-    x = layers.Conv1D(
-        filters=32, kernel_size=17, strides=2, padding='same', use_bias=False,
-        kernel_regularizer=tf.keras.regularizers.l2(5e-6)
-    )(x)
+    x = layers.Conv1D(filters=32, kernel_size=17, strides=2, padding='same', use_bias=False, kernel_regularizer=tf.keras.regularizers.l2(5e-6))(x)
     x = layers.BatchNormalization()(x)
     x = layers.LeakyReLU(0.1)(x)
     x = layers.Dropout(0.1)(x)
@@ -163,7 +157,6 @@ def sleepiness_cnn(insize_per_ep):
 
     # Devolvemos el Modelo creado correctamente
     return models.Model(inputs=inputs, outputs=outputs)
-
 
 # =============================================================================
 #  ARQUITECTURA COMPLETA (CNN + GRU)
@@ -197,7 +190,6 @@ def build_complete_sleep_model(n_sequences, insize_per_ep, nunit=64, dropout_rnn
     
     return model
 
-
 # --- Configuración de parámetros ---
 Fs = 100            # Frecuencia de muestreo (Hz)
 n_hour = 12         # Horas de registro
@@ -207,7 +199,6 @@ insize_per_ep = int(nmin * Fs * 60)
 
 model = build_complete_sleep_model(n_sequences, insize_per_ep)
 model.summary()
-
 
 # =============================================================================
 #  GENERADOR DE DATOS
