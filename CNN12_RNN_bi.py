@@ -1,7 +1,7 @@
 """
 =============================================================================
 PROYECTO TFG: Predicción de la SED mediante deep learning empleando registros de EEG
-Modelo: Arquitectura Híbrida (CNN-12 + GRU) - Clasificación Binaria Epworth
+Modelo: Arquitectura Híbrida (CNN-12 + GRU) - Clasificación Binaria 
 =============================================================================
 """
 
@@ -253,14 +253,21 @@ model.summary()
 # =============================================================================
 early_stop = EarlyStopping(monitor='val_loss', patience=8, verbose=1, mode='min', restore_best_weights=True)
 lr_reducer = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=1e-7, verbose=1)
-
-os.makedirs('modelos_entrenados_2', exist_ok=True)
 checkpoint = ModelCheckpoint(filepath='modelos_entrenados_2/mejor_modelo_binario.keras', monitor='val_loss', save_best_only=True, mode='min', verbose=1)
 
 # =============================================================================
 #  GENERADOR DE DATOS
 # =============================================================================
 class SignalGeneratorMAT(Sequence):
+    """
+        oversample=True: sobremuestrea la clase minoritaria (repitiendo archivos)
+        para que en cada época se vean aproximadamente el mismo número de
+        muestras de cada clase. 
+
+        Las copias duplicadas por oversampling reciben un ligero augmentation
+        (ruido gaussiano leve + pequeño desplazamiento temporal) para no repetir
+        exactamente la misma señal y reducir el riesgo de memorización.
+        """
     def __init__(self, file_paths, batch_size, n_sequences, insize_per_ep, shuffle=True, oversample=False, augment_prob=0.5, noise_std=0.01, max_shift=2000):
         self.original_paths = list(file_paths)
         self.batch_size = batch_size
