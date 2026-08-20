@@ -72,12 +72,8 @@ for direccion in bases_individuales:
             strat_labels = np.digitize(labels, bins)
             
             try:
-                tr, temp_files, _, temp_labels_strat = train_test_split(
-                    files_validos, strat_labels, test_size=0.30, random_state=42, stratify=strat_labels
-                )
-                ts, vl = train_test_split(
-                    temp_files, test_size=0.50, random_state=42, stratify=temp_labels_strat
-                )
+                tr, temp_files, _, temp_labels_strat = train_test_split(files_validos, strat_labels, test_size=0.30, random_state=42, stratify=strat_labels)
+                ts, vl = train_test_split(temp_files, test_size=0.50, random_state=42, stratify=temp_labels_strat)
                 train_files.extend(tr)
                 test_files.extend(ts)
                 validation_files.extend(vl)
@@ -195,8 +191,7 @@ def sleepiness_cnn(input_shape=(4320000, 1), fs=100):
 
 # ── Compilación ───────────────────────────────────────────────────────────────
 model = sleepiness_cnn()
-model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipnorm=1.0),
-    loss=tf.keras.losses.Huber(delta=2.0),metrics=['mae'])
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipnorm=1.0), loss=tf.keras.losses.Huber(delta=2.0),metrics=['mae'])
 model.summary()
 
 # =============================================================================
