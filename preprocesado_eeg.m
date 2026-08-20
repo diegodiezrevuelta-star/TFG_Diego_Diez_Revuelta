@@ -74,7 +74,6 @@ for i = 1:num_archivos
     senal_final = zeros(1, puntos_limite, 'single');
     senal_final(1:real_len) = single(senal_norm); % Usamos single para ahorrar memoria
 
-    
     % 6. GUARDAMOS
     % El parámetro '-append' asegura que el resto de variables/etiquetas del archivo queden INTACTAS
     save(ruta_completa, 'senal_final', '-append');
