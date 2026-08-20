@@ -72,12 +72,8 @@ for direccion in bases_individuales:
             strat_labels = np.digitize(labels, bins)
             
             try:
-                tr, temp_files, _, temp_labels_strat = train_test_split(
-                    files_validos, strat_labels, test_size=0.30, random_state=42, stratify=strat_labels
-                )
-                ts, vl = train_test_split(
-                    temp_files, test_size=0.50, random_state=42, stratify=temp_labels_strat
-                )
+                tr, temp_files, _, temp_labels_strat = train_test_split(files_validos, strat_labels, test_size=0.30, random_state=42, stratify=strat_labels)
+                ts, vl = train_test_split(temp_files, test_size=0.50, random_state=42, stratify=temp_labels_strat)
                 train_files.extend(tr)
                 test_files.extend(ts)
                 validation_files.extend(vl)
@@ -230,11 +226,7 @@ def sleepiness_cnn():
 
 # ── Compilación ───────────────────────────────────────────────────────────────
 model = sleepiness_cnn()
-model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipnorm=1.0),
-    loss=tf.keras.losses.Huber(delta=2.0),
-    metrics=['mae']
-)
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001, clipnorm=1.0),loss=tf.keras.losses.Huber(delta=2.0),metrics=['mae'])
 model.summary()
 
 # =============================================================================
@@ -309,13 +301,7 @@ lr_reducer = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_l
 checkpoint = ModelCheckpoint(filepath='mejor_modelo.keras', monitor='val_loss', save_best_only=True, mode='min', verbose=1)
 
 print("Iniciando entrenamiento...")
-history = model.fit(
-    train_gen,
-    validation_data=val_gen if len(validation_files) > 0 else None,
-    epochs=200,
-    verbose=1,
-    callbacks=[early_stop, lr_reducer, checkpoint]
-)
+history = model.fit(train_gen,validation_data=val_gen if len(validation_files) > 0 else None,epochs=200,verbose=1,callbacks=[early_stop, lr_reducer, checkpoint])
 
 # =============================================================================
 #  EVALUACIÓN Y GRÁFICAS
@@ -350,8 +336,7 @@ plt.figure(figsize=(8, 6))
 plt.scatter(y_true, y_pred, alpha=0.4, color='blue', label='Pacientes')
 
 x_range = np.array([ETIQUETA_MIN, ETIQUETA_MAX + 4])
-plt.plot(x_range, m * x_range + b, color='green', linestyle='-', linewidth=2,
-         label=f'Ajuste Real ($y = {m:.2f}x + {b:.2f}$)')
+plt.plot(x_range, m * x_range + b, color='green', linestyle='-', linewidth=2, label=f'Ajuste Real ($y = {m:.2f}x + {b:.2f}$)')
 
 plt.title(f'Análisis de Sesgo: Predicción vs Realidad ({NOMBRE_ETIQUETA.upper()})')
 plt.xlabel(f'Valores Reales ({NOMBRE_ETIQUETA})')
