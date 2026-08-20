@@ -1,7 +1,7 @@
 """
 =============================================================================
 PROYECTO TFG: Predicción de la SED mediante deep learning empleando registros de EEG
-Modelo: Arquitectura Híbrida CNN (4 capas) + RNN - Regresión 
+Modelo: Arquitectura Híbrida CNN (12 capas) + RNN - Regresión 
 =============================================================================
 """
 
@@ -110,7 +110,7 @@ print(f"Media {NOMBRE_ETIQUETA} Test:  {calcular_media(test_files):.2f}")
 print(f"Media {NOMBRE_ETIQUETA} Val:   {calcular_media(validation_files):.2f}")
 
 # =============================================================================
-#  ARQUITECTURA DEL EXTRACTOR CNN (Base Model)
+#  ARQUITECTURA CNN-12
 # =============================================================================
 def sleepiness_cnn(insize_per_ep):
     model = models.Sequential()
@@ -191,30 +191,29 @@ def sleepiness_cnn(insize_per_ep):
 #  ARQUITECTURA COMPLETA (CNN + GRU)
 # =============================================================================
 def build_complete_sleep_model(n_sequences, insize_per_ep, nunit=64, dropout_rnn=0.3):
-    """ Integra la CNN con el stack de GRUs y salida de regresión. """
+    model = models.Sequential()
     
-    inputs = Input(shape=(n_sequences, insize_per_ep, 1))
+    # 1. Definir la entrada: (N_Epochs, Puntos_por_Epoch, Canales)
+    model.add(layers.Input(shape=(n_sequences, insize_per_ep, 1)))
+
+    # 2. Instanciar el extractor base y envolverlo en TimeDistributed
     base_cnn = sleepiness_cnn(insize_per_ep)
-    base_cnn.summary()
+    model.add(layers.TimeDistributed(base_cnn))
+    model.add(layers.Dropout(0.3))
 
-    # Envolver la CNN en TimeDistributed para procesar toda la secuencia
-    conv_seq = layers.TimeDistributed(base_cnn)(inputs)
-    conv_seq = layers.Dropout(0.3)(conv_seq)
+    # 3. Stack de GRUs
+    model.add(layers.GRU(nunit, return_sequences=True, dropout=dropout_rnn, kernel_initializer='he_normal'))
+    model.add(layers.GRU(nunit, return_sequences=True, dropout=dropout_rnn, kernel_initializer='he_normal'))
+    model.add(layers.GRU(nunit, return_sequences=False, dropout=dropout_rnn, kernel_initializer='he_normal'))
 
-    # Stack de GRUs
-    x = layers.GRU(nunit, return_sequences=True, dropout=dropout_rnn, kernel_initializer='he_normal')(conv_seq)
-    x = layers.GRU(nunit, return_sequences=True, dropout=dropout_rnn, kernel_initializer='he_normal')(x)
-    x = layers.GRU(nunit, return_sequences=False, dropout=dropout_rnn, kernel_initializer='he_normal')(x)
+    # 4. Capa de salida: Regresión
+    model.add(layers.Dense(1, activation="linear", kernel_initializer='he_normal'))
 
-    # Capa de salida: Regresión
-    out = layers.Dense(1, activation="linear", kernel_initializer='he_normal')(x)
-
-    model = Model(inputs=inputs, outputs=out)
+    # 5. Compilación del modelo
     opt = tf.keras.optimizers.Adam(learning_rate=0.001)
     model.compile(loss='huber', optimizer=opt, metrics=['mae'])
     
     return model
-
 
 # --- Configuración de parámetros de la señal ---
 Fs = 100            # Frecuencia de muestreo (Hz)
@@ -316,8 +315,7 @@ plt.figure(figsize=(8, 6))
 plt.scatter(y_true, y_pred, alpha=0.4, color='blue', label='Pacientes')
 
 x_range = np.array([ETIQUETA_MIN, ETIQUETA_MAX + 4])
-plt.plot(x_range, m * x_range + b, color='green', linestyle='-', linewidth=2,
-         label=f'Ajuste Real ($y = {m:.2f}x + {b:.2f}$)')
+plt.plot(x_range, m * x_range + b, color='green', linestyle='-', linewidth=2, label=f'Ajuste Real ($y = {m:.2f}x + {b:.2f}$)')
 
 plt.title(f'Análisis de Sesgo: Predicción vs Realidad ({NOMBRE_ETIQUETA.upper()})')
 plt.xlabel(f'Valores Reales ({NOMBRE_ETIQUETA})')
