@@ -151,10 +151,7 @@ resumen_clases(validation_files, "Val  ")
 #  ARQUITECTURA CNN-4
 # =============================================================================
 def sleepiness_cnn(insize_per_ep):
-    """Extractor de características por época (arquitectura multiescala con
-    pre-bloque de submuestreo grueso + 3 bloques con regularización L2 +
-    pooling dual GAP/GMP). Sin capa de salida final: el TimeDistributed + GRU
-    se encargan de agregar la secuencia y clasificar."""
+    
     inputs = layers.Input(shape=(insize_per_ep, 1))
 
     # ── BLOQUE 1
@@ -207,7 +204,7 @@ def build_complete_sleep_model_binario(n_sequences, insize_per_ep, nunit=64, dro
     base_cnn = sleepiness_cnn(insize_per_ep)
     base_cnn.summary()
 
-    # 3. 
+    # 3. # Aplica la CNN a cada época de la secuencia de forma independiente 
     conv_seq = layers.TimeDistributed(base_cnn)(inputs)
     conv_seq = layers.Dropout(0.3)(conv_seq)
 
