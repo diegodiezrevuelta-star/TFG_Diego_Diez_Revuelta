@@ -227,7 +227,7 @@ def build_complete_sleep_model_binario(n_sequences, insize_per_ep, nunit=64, dro
     # 1. Entrada
     model.add(layers.Input(shape=(n_sequences, insize_per_ep, 1)))
 
-    # 2.  CNN + TimeDistributed
+    # 2. Aplica la CNN a cada época de la secuencia de forma independiente 
     base_cnn = sleepiness_cnn(insize_per_ep)
     model.add(layers.TimeDistributed(base_cnn))
     model.add(layers.Dropout(0.3))
