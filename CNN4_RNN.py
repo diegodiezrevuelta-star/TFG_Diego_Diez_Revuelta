@@ -222,7 +222,7 @@ def sleepiness_cnn(insize_per_ep):
 #  ARQUITECTURA COMPLETA (CNN + GRU)
 # =============================================================================
 def build_complete_sleep_model(n_sequences, insize_per_ep, nunit=64, dropout_rnn=0.3):
-    #Integra la arquitectura CNN con el bloque de redes recurrentes (GRUs) y define la salida para la tarea de regresión.
+    # Integra la arquitectura CNN con el bloque de redes recurrentes (GRUs) y define la salida para la tarea de regresión
     inputs = Input(shape=(n_sequences, insize_per_ep, 1))
 
     # Se instancia el extractor de características base (CNN)
