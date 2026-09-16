@@ -1,7 +1,7 @@
 """
 =============================================================================
-PROYECTO TFG: Predicción de la SED mediante Deep Learning empleando registros de EEG
-Modelo: CNN 12 Capas - Regresión 
+Predicción de la SED mediante Deep Learning empleando registros de EEG
+CNN 12 Capas - Regresión 
 =============================================================================
 """
 
@@ -18,17 +18,17 @@ from scipy.stats import pearsonr
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 # =============================================================================
-#  CONFIGURACIÓN GLOBAL DE ETIQUETA
+#  CONFIGURACIÓN DE ETIQUETA
 # =============================================================================
-NOMBRE_ETIQUETA = 'epworth'  # Cmbiar para las otras etiquetas: mslt, mwt y psqi
+NOMBRE_ETIQUETA = 'epworth'  # Cambiar para las otras etiquetas: mslt, mwt y psqi
 ETIQUETA_MIN = 0             # Valor mínimo válido de la etiqueta
-ETIQUETA_MAX = 24            # Valor máximo válido de la etiqueta (20 --> mslt y mwt; 21 --> psqi)
+ETIQUETA_MAX = 24            # Valor máximo válido de la etiqueta (20 para mslt y mwt; 21 para psqi)
 
 # =============================================================================
 #  FUNCIONES AUXILIARES
 # =============================================================================
+#Extrae el valor de la etiqueta configurada para poder estratificar.
 def obtener_valor_etiqueta(ruta_archivo):
-    """Extrae el valor de la etiqueta configurada para poder estratificar."""
     try:
         meta_data = sio.loadmat(ruta_archivo, variable_names=[NOMBRE_ETIQUETA])
         valor = meta_data[NOMBRE_ETIQUETA]
@@ -45,35 +45,49 @@ def obtener_valor_etiqueta(ruta_archivo):
 # =============================================================================
 #  CONFIGURACIÓN DE RUTAS Y PREPARACIÓN DE DATOS
 # =============================================================================
+# Carpeta principal donde están guardados los datos
 dir_base = os.path.join('.', 'BBDD')
-bases_individuales = [r'APPLES\apple_procesado',r'MESA\mesa_procesado', r'MrOS\mros_procesado', r'SHHS\shhs_procesado', r'CFS\cfs_procesado', r'WSC\wsc_procesado'] # Dirección de las bases de datos a utilizar
-bases_dividir = [r'APPLES\apple_procesado',r'SHHS\shhs_procesado',r'WSC\wsc_procesado'] # Dirección de las bases de datos incluidas en bases_individuales que necesitan ser divididas en subgrupos de train, test y validation.
+# Lista con todas las bases de datos que queremos procesar
+bases_individuales = [r'APPLES\apple_procesado',r'MESA\mesa_procesado', r'MrOS\mros_procesado', r'SHHS\shhs_procesado', r'CFS\cfs_procesado', r'WSC\wsc_procesado']
+# Dirección de las bases de datos incluidas en bases_individuales que necesitan ser divididas en subgrupos de train, test y validation.
+bases_dividir = [r'APPLES\apple_procesado',r'SHHS\shhs_procesado',r'WSC\wsc_procesado'] 
 
 train_files, test_files, validation_files = [], [], []
 
+# PROCESAMIENTO DE CADA BASE DE DATOS
+# Recorremos una por una las carpetas de las bases de datos
 for direccion in bases_individuales:
     dir_completa = os.path.join(dir_base, direccion)
     print(f"--- Procesando: {direccion} ---")
 
+    # CASO A:La base de datos necesita ser dividida 
     if direccion in bases_dividir:
         if not os.path.exists(dir_completa): continue
 
+        # Buscamos todos los archivos que terminen en ".mat"
         all_files = [os.path.join(dir_completa, f) for f in os.listdir(dir_completa) if f.endswith('.mat')]
         files_validos, labels = [], []
 
+        # Revisamos archivo por archivo para sacar su "etiqueta"
         for f in all_files:
             val = obtener_valor_etiqueta(f)
-            if val is not None:
+            # Si tiene una etiqueta válida, lo guardamos
+            if val is not None: 
                 files_validos.append(f)
                 labels.append(val)
 
+        # Si encontramos archivos válidos, empezamos a dividirlos
         if len(files_validos) > 0:
+            # Agrupamos las etiquetas en categorías para que la división sea equilibrada
             bins = np.linspace(ETIQUETA_MIN, ETIQUETA_MAX, 6)
             strat_labels = np.digitize(labels, bins)
             
             try:
+                # Dividimos las muestras (70% para entrenar, 30% restante)
                 tr, temp_files, _, temp_labels_strat = train_test_split(files_validos, strat_labels, test_size=0.30, random_state=42, stratify=strat_labels)
+                # Dividimos el 30% de las muestras restantes (15% para test y 15% para validación)
                 ts, vl = train_test_split(temp_files, test_size=0.50, random_state=42, stratify=temp_labels_strat)
+                # Añadimos los archivos a nuestras listas generales
                 train_files.extend(tr)
                 test_files.extend(ts)
                 validation_files.extend(vl)
@@ -88,12 +102,17 @@ for direccion in bases_individuales:
                 test_files.extend(ts)
                 validation_files.extend(vl)
 
+    # CASO B: La base de datos ya viene dividida
     else:
+        # Buscamos directamente en las subcarpetas "train", "test" y "validation"
         for sub, lista in [('train', train_files), ('test', test_files), ('validation', validation_files)]:
             ruta_sub = os.path.join(dir_completa, sub)
             if os.path.exists(ruta_sub):
+                # Seleccionamos los archivos ".mat".
                 archivos = [os.path.join(ruta_sub, f) for f in os.listdir(ruta_sub) if f.endswith('.mat')]
+                # Filtramos para quedarnos solo con los que tienen etiqueta válida
                 archivos_validos = [f for f in archivos if obtener_valor_etiqueta(f) is not None]
+                # Los añadimos a su lista correspondiente
                 lista.extend(archivos_validos)
 
 # --- RESUMEN FINAL ---
@@ -114,28 +133,36 @@ print(f"Media {NOMBRE_ETIQUETA} Val:   {calcular_media(validation_files):.2f}")
 N_BINS_PESOS = 10
 bordes_pesos = np.linspace(ETIQUETA_MIN, ETIQUETA_MAX, N_BINS_PESOS + 1)
 
+# Obtenemos el valor (etiqueta) de cada archivo de entrenamiento
 train_labels_arr = np.array([obtener_valor_etiqueta(f) for f in train_files], dtype=np.float32)
+# Introducimos cada archivo en uno de los BINS dependiendo de su valor
 train_bin_idx = np.digitize(train_labels_arr, bordes_pesos[1:-1])
 
+# Contamos y calculamos la importancia de cada BIN
 conteo_por_bin = np.bincount(train_bin_idx, minlength=N_BINS_PESOS).astype(np.float32)
 conteo_por_bin[conteo_por_bin == 0] = 1
 
+# Calculamos el "peso".
 pesos_por_bin = len(train_files) / (N_BINS_PESOS * conteo_por_bin)
 pesos_muestra = pesos_por_bin[train_bin_idx]
+# Ajustamos los pesos para que la media sea exactamente 1
 pesos_muestra = pesos_muestra / pesos_muestra.mean()
 
 print("\n Pesos por bin de rareza (train):")
 for i, (c, w) in enumerate(zip(conteo_por_bin, pesos_por_bin)):
     print(f"  Bin {i}: n={int(c):4d}  peso≈{w:.3f}")
 
-# --- CAPADO DE PESOS ---
+# Establecemos límites al valor de los pesos
 PESO_MAX = 5.0
 PESO_MIN = 0.2
 
+# Contamos cuántos archivos superan estos límites
 n_capados_arriba = np.sum(pesos_muestra > PESO_MAX)
 n_capados_abajo = np.sum(pesos_muestra < PESO_MIN)
+# Aplicamos el recorte
 pesos_muestra = np.clip(pesos_muestra, PESO_MIN, PESO_MAX)
 pesos_muestra = pesos_muestra / pesos_muestra.mean()
+# Volvemos a ajustar los pesos para que la media siga siendo 1
 dict_pesos_train = dict(zip(train_files, pesos_muestra))
 
 print(f"\n Capado de pesos: {n_capados_arriba} muestras > {PESO_MAX} | {n_capados_abajo} muestras < {PESO_MIN}")
@@ -233,6 +260,7 @@ model.summary()
 #  GENERADOR DE DATOS
 # =============================================================================
 class SignalGeneratorMAT(Sequence):
+    # Configuración incial
     def __init__(self, file_paths, batch_size, shuffle=True, weights_dict=None):
         self.file_paths = np.array(file_paths)
         self.batch_size = batch_size
@@ -241,22 +269,30 @@ class SignalGeneratorMAT(Sequence):
         self.target_length = 4320000
         self.on_epoch_end()
 
+    # Calculo del total de batches
     def __len__(self):
         return int(np.ceil(len(self.file_paths) / self.batch_size))
 
+    # Acción a realizar tras terminar cada época
     def on_epoch_end(self):
         if self.shuffle:
             np.random.shuffle(self.file_paths)
 
+    # Carga y preparación de cada batch
     def __getitem__(self, idx):
+        # Seleccionamos qué grupo de archivos a cargar
         batch_paths = self.file_paths[idx * self.batch_size: (idx + 1) * self.batch_size]
         batch_x, batch_y, batch_w = [], [], []
 
+        # Recorremos uno por uno los archivos de este batch
         for path in batch_paths:
             try:
+                # Cargamos el archivo
                 data = sio.loadmat(path)
+                # Extraemos la señal
                 senal = data['senal_final'].flatten().astype(np.float32)
 
+                # Ajustamos el tamaño de la señal si la señal no tiene exactamente el tamaño que exigimos
                 if len(senal) != self.target_length:
                     senal_procesada = np.zeros(self.target_length, dtype=np.float32)
                     actual_fill = min(len(senal), self.target_length)
@@ -264,15 +300,19 @@ class SignalGeneratorMAT(Sequence):
                 else:
                     senal_procesada = senal
 
+                # Extraemos la etiqueta
                 etiqueta = data[NOMBRE_ETIQUETA][0][0]
                 batch_x.append(senal_procesada)
                 batch_y.append(etiqueta)
 
+                # En caso de que decidamos utilizar el mapa de pesos, cargamos el valor del peso para el archivo concreto
                 if self.weights_dict is not None:
                     batch_w.append(self.weights_dict.get(path, 1.0))
             except Exception as e:
                 print(f"Error procesando {path}: {e}")
 
+        
+        # Gestionamos el error en caso de que un batch quede vacio
         if len(batch_x) == 0:
             empty_x = np.empty((0, self.target_length, 1), dtype=np.float32)
             empty_y = np.empty((0,), dtype=np.float32)
@@ -280,11 +320,14 @@ class SignalGeneratorMAT(Sequence):
                 return empty_x, empty_y, np.empty((0,), dtype=np.float32)
             return empty_x, empty_y
 
+        # Convertimos las listas al formato adecuado
         X = np.array(batch_x)
         if X.ndim == 2:
             X = np.expand_dims(X, axis=-1)
 
+        # Si la matriz de señales es plana, le añadimos una dimensión al final
         if self.weights_dict is not None:
+            # Finalmente, entregamos las señales (X), las etiquetas (Y) y los pesos (W) (si se requieren)
             return X, np.array(batch_y), np.array(batch_w, dtype=np.float32)
         return X, np.array(batch_y)
 
@@ -293,35 +336,43 @@ class SignalGeneratorMAT(Sequence):
 # =============================================================================
 BATCH_SIZE = 8
 
+# Generadores de datos para los conjuntos de entrenamiento y validación
 train_gen = SignalGeneratorMAT(train_files, batch_size=BATCH_SIZE, shuffle=True, weights_dict=dict_pesos_train)
 val_gen = SignalGeneratorMAT(validation_files, batch_size=BATCH_SIZE, shuffle=False)
 
+# Configuración de callbacks
 early_stop = EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='min', restore_best_weights=True)
 lr_reducer = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=1e-7, verbose=1)
 checkpoint = ModelCheckpoint(filepath='mejor_modelo.keras', monitor='val_loss', save_best_only=True, mode='min', verbose=1)
 
 print("Iniciando entrenamiento...")
+# Ejecución del bucle de entrenamiento
 history = model.fit(train_gen,validation_data=val_gen if len(validation_files) > 0 else None,epochs=200,verbose=1,callbacks=[early_stop, lr_reducer, checkpoint])
 
 # =============================================================================
 #  EVALUACIÓN Y GRÁFICAS
 # =============================================================================
+# Generador de datos para el conjunto de prueba 
 test_gen = SignalGeneratorMAT(test_files, batch_size=BATCH_SIZE, shuffle=False)
 
 print("\n--- EVALUACIÓN FORMAL (Huber/MAE) ---")
+# Evaluación cuantitativa del modelo utilizando las métricas de pérdida
 results = model.evaluate(test_gen, verbose=1)
 print(f"Test Loss (Huber): {results[0]:.4f}")
 print(f"Test MAE: {results[1]:.4f}")
 
 print("\nGenerando predicciones detalladas...")
+# Obtención de las predicciones continuas del modelo sobre el conjunto de prueba.
 y_pred = model.predict(test_gen, verbose=1).flatten()
 
+# Extracción de las etiquetas reales del generador para la validación estadística.
 y_true = []
 for i in range(len(test_gen)):
     _, labels = test_gen[i]
     y_true.extend(labels)
 y_true = np.array(y_true)
 
+# Cálculo de métricas de rendimiento estadístico.
 r_pearson, p_value = pearsonr(y_true, y_pred)
 r2 = r2_score(y_true, y_pred)
 
@@ -329,12 +380,14 @@ print("\n--- MÉTRICAS DE CORRELACIÓN Y PRECISIÓN ---")
 print(f"Correlación de Pearson: {r_pearson:.4f} (p-value: {p_value:.4e})")
 print(f"Coeficiente de Determinación (R²): {r2:.4f}")
 
+# Representación del rendimiento
 # Dibujar ajuste
 m, b = np.polyfit(y_true, y_pred, 1)
 
 plt.figure(figsize=(8, 6))
 plt.scatter(y_true, y_pred, alpha=0.4, color='blue', label='Pacientes')
 
+# Trazado de la recta de ajuste lineal obtenida.
 x_range = np.array([ETIQUETA_MIN, ETIQUETA_MAX + 4])
 plt.plot(x_range, m * x_range + b, color='green', linestyle='-', linewidth=2, label=f'Ajuste Real ($y = {m:.2f}x + {b:.2f}$)')
 
