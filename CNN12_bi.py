@@ -413,7 +413,7 @@ for i in range(len(test_gen)):
     y_true_raw.extend(labels)
 y_true_raw = np.array(y_true_raw)
 
-# Conversi´pn de one-hot a clase (0 o 1)
+# Conversión de one-hot a clase (0 o 1)
 y_pred = np.argmax(y_pred_raw, axis=1)
 y_true = np.argmax(y_true_raw, axis=1)
 
@@ -421,7 +421,7 @@ y_true = np.argmax(y_true_raw, axis=1)
 print("\n--- INFORME DE CLASIFICACIÓN ---")
 print(classification_report(y_true, y_pred, target_names=['Sano (0)', 'No sano (1)'], zero_division=0))
 
-# Se representa la Matriz de Confusión
+# Se representa la matriz de confusión
 cm = confusion_matrix(y_true, y_pred)
 plt.figure(figsize=(7, 5))
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
