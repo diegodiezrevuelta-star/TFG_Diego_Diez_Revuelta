@@ -76,7 +76,7 @@ for direccion in bases_individuales:
                 files_validos.append(f)
                 labels.append(val)
 
-        # Si encontramos archivos válidos, empezamos a dividirlos
+        # Si encontramos archivos válidos empezamos a dividirlos
         if len(files_validos) > 0:
             # Agrupamos las etiquetas en categorías para que la división sea equilibrada
             bins = np.linspace(ETIQUETA_MIN, ETIQUETA_MAX, 6)
@@ -225,7 +225,7 @@ model.summary()
 #  GENERADOR DE DATOS
 # =============================================================================
 class SignalGeneratorMAT(Sequence):
-    # Configuración incial
+    # Configuración inicial
     def __init__(self, file_paths, batch_size, shuffle=True, weights_dict=None):
         self.file_paths = np.array(file_paths)
         self.batch_size = batch_size
@@ -277,7 +277,7 @@ class SignalGeneratorMAT(Sequence):
                 print(f"Error procesando {path}: {e}")
 
         
-        # Gestionamos el error en caso de que un batch quede vacio
+        # Gestionamos el error en caso de que un batch quede vacío
         if len(batch_x) == 0:
             empty_x = np.empty((0, self.target_length, 1), dtype=np.float32)
             empty_y = np.empty((0,), dtype=np.float32)
@@ -327,17 +327,17 @@ print(f"Test Loss (Huber): {results[0]:.4f}")
 print(f"Test MAE: {results[1]:.4f}")
 
 print("\nGenerando predicciones detalladas...")
-# Obtención de las predicciones continuas del modelo sobre el conjunto de prueba.
+# Obtención de las predicciones continuas del modelo sobre el conjunto de prueba
 y_pred = model.predict(test_gen, verbose=1).flatten()
 
-# Extracción de las etiquetas reales del generador para la validación estadística.
+# Extracción de las etiquetas reales del generador para la validación estadística
 y_true = []
 for i in range(len(test_gen)):
     _, labels = test_gen[i]
     y_true.extend(labels)
 y_true = np.array(y_true)
 
-# Cálculo de métricas de rendimiento estadístico.
+# Cálculo de métricas de rendimiento estadístico
 r_pearson, p_value = pearsonr(y_true, y_pred)
 r2 = r2_score(y_true, y_pred)
 
@@ -346,13 +346,13 @@ print(f"Correlación de Pearson: {r_pearson:.4f} (p-value: {p_value:.4e})")
 print(f"Coeficiente de Determinación (R²): {r2:.4f}")
 
 # Representación del rendimiento
-# Dibujar ajuste
+# Calculo recta de ajuste
 m, b = np.polyfit(y_true, y_pred, 1)
 
 plt.figure(figsize=(8, 6))
 plt.scatter(y_true, y_pred, alpha=0.4, color='blue', label='Pacientes')
 
-# Trazado de la recta de ajuste lineal obtenida.
+# Trazado de la recta de ajuste lineal obtenida
 x_range = np.array([ETIQUETA_MIN, ETIQUETA_MAX + 4])
 plt.plot(x_range, m * x_range + b, color='green', linestyle='-', linewidth=2, label=f'Ajuste Real ($y = {m:.2f}x + {b:.2f}$)')
 
