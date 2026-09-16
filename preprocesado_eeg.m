@@ -1,7 +1,7 @@
 % =========================================================================
 % Preprocesamiento de los registros de EEG 
 %
-% Este script es utilizado para con todas las bases de datos del proyecto.
+% Este script es utilizado con todas las bases de datos del proyecto.
 % Hay que tener en cuenta que algunas bases de datos presentan las subdivisiones (train, test y validation) guardadas en carpetas separadas.
 % Se deberá ejecutar este  script para cada una de esas subcarpetas de forma individual, modificando 
 % la variable 'input_dir' en cada caso.
