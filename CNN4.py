@@ -346,7 +346,7 @@ print(f"Correlación de Pearson: {r_pearson:.4f} (p-value: {p_value:.4e})")
 print(f"Coeficiente de Determinación (R²): {r2:.4f}")
 
 # Representación del rendimiento
-# Calculo recta de ajuste
+# Calculo de la recta de ajuste
 m, b = np.polyfit(y_true, y_pred, 1)
 
 plt.figure(figsize=(8, 6))
