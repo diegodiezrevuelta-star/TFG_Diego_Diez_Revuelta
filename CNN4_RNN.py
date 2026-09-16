@@ -238,13 +238,13 @@ def build_complete_sleep_model(n_sequences, insize_per_ep, nunit=64, dropout_rnn
     x = layers.GRU(nunit, return_sequences=True, dropout=dropout_rnn, kernel_initializer='he_normal')(x)
     x = layers.GRU(nunit, return_sequences=False, dropout=dropout_rnn, kernel_initializer='he_normal')(x)
 
-    # Se añade la capa de salida lineal para la predicción del valor continuo (regresión)
+    # Se añade la capa de salida lineal para la predicción del valor 
     out = layers.Dense(1, activation="linear", kernel_initializer='he_normal')(x)
 
     model = Model(inputs=inputs, outputs=out)
     opt = tf.keras.optimizers.Adam(learning_rate=0.001)
     
-    # Se compila el modelo utilizando la función de pérdida Huber para mayor robustez frente a valores atípicos
+    # Se compila el modelo 
     model.compile(loss='huber', optimizer=opt, metrics=['mae'])
     
     return model
