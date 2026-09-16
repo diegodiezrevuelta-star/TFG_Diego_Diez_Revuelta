@@ -1,5 +1,5 @@
 %% =========================================================================
-%  PROYECTO TFG: Procesamiento y Detección de Fin de Registro en Señales EEG
+%  Procesamiento y Detección de Fin de Registro en Señales EEG
 %  Descripción:
 %     Este script analiza registros de EEG en formato .mat para detectar
 %     automáticamente la desconexión de electrodos o fin de prueba en señales 
@@ -44,7 +44,7 @@ for k = indices_a_procesar
         ventana_seg = 15 * 60; % Ventana de análisis de 15 minutos
         muestras_ventana = ventana_seg * fs;
         
-        % Segmento de referencia basal (primeras 8 horas)
+        % Segmento de referencia (primeras 8 horas)
         horas_ref = 8;
         muestras_ref = min(length(senal), round(horas_ref * 3600 * fs));
         num_bloques_ref = floor(muestras_ref / muestras_ventana);
@@ -78,7 +78,7 @@ for k = indices_a_procesar
             end
         end
         
-        % La referencia basal se asume válida
+        % La referencia se asume válida
         es_bueno(1:num_bloques_ref) = 1;
         
         % Identificación de la componente conexa inicial continua
@@ -108,7 +108,7 @@ ylabel('Amplitud (\muV)', 'FontSize', 14);
 grid on;
 set(gca, 'FontSize', 12);
 
-% Figura 2: Señal con límites de recorte detectados
+% Figura 2: Señal de sueño efectivo 
 figure(2);
 clf;
 plot(T, senal, 'Color', [0.5 0.5 0.5]); % Señal en gris
