@@ -313,13 +313,13 @@ class SignalGeneratorMAT(Sequence):
         print(f" [Oversampling] Sano: {n_clase0} -> {n_mayoria} | No sano: {n_clase1} -> {n_mayoria} | Total por época: {len(balanceado)}")
 
     def shuffle_manteniendo_flags(self):
-        #Aleatoriza el conjunto de datos garantizando que cada ruta de archivo conserve su etiqueta indicadora de duplicidad.
+        # Aleatoriza el conjunto de datos garantizando que cada ruta de archivo conserve su etiqueta indicadora de duplicidad.
         idx = np.random.permutation(len(self.file_paths))
         self.file_paths = self.file_paths[idx]
         self.is_duplicate = self.is_duplicate[idx]
 
     def __len__(self):
-        # Se calcula el número total de lotes (batches) por época
+        # Se calcula el número total de batches por época
         return int(np.ceil(len(self.file_paths) / self.batch_size))
 
     def on_epoch_end(self):
