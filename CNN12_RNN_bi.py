@@ -472,5 +472,33 @@ plt.xlabel('Predicción del Modelo')
 plt.ylabel('Valor Real')
 plt.show()
 
+# Curva ROC y AUC
+# Se extraen las probabilidades para la clase 1 ("No sano") adaptándose a la arquitectura
+if y_pred_raw.shape[1] == 1:
+    y_scores = y_pred_raw.flatten()
+else:
+    y_scores = y_pred_raw[:, 1]
+
+# Cálculo de la Tasa de Falsos Positivos (FP) y Verdaderos Positivos (TP) a distintos umbrales
+fpr, tpr, thresholds = roc_curve(y_true, y_scores)
+# Cálculo del Área Bajo la Curva (AUC)
+roc_auc = auc(fpr, tpr)
+print(f"\n AUC: {roc_auc:.4f}")
+
+# Representación gráfica de la Curva ROC
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, color='blue', lw=2, label=f'ROC {NOMBRE_ETIQUETA.upper()} (AUC = {roc_auc:.3f})')
+plt.plot([0, 1], [0, 1], color='red', lw=2, linestyle='--', label='Clasificador Aleatorio')
+
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('Tasa de Falsos Positivos (1 - Especificidad)', fontsize=12)
+plt.ylabel('Tasa de Verdaderos Positivos (Sensibilidad)', fontsize=12)
+plt.title(f'Curva ROC - {NOMBRE_ETIQUETA.upper()}', fontsize=14, fontweight='bold')
+plt.legend(loc="lower right", fontsize=11)
+plt.grid(True, linestyle=':', alpha=0.7)
+plt.tight_layout()
+plt.show()
+
 # Guardado final del modelo
 model.save(f'modelos_entrenados/modelo_cnn4_rnn_{NOMBRE_ETIQUETA}_binario.keras')
