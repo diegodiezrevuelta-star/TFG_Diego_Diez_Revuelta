@@ -16,8 +16,7 @@ from tensorflow.keras import Input, Model
 from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 from tensorflow.keras.utils import Sequence
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
-
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, roc_curve, auc
 # =============================================================================
 #  CONFIGURACIÓN GLOBAL DE ETIQUETA
 # =============================================================================
