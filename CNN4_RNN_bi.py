@@ -19,7 +19,7 @@ from tensorflow.keras.utils import Sequence
 from sklearn.model_selection import train_test_split
 from scipy.stats import pearsonr
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, roc_curve, auc
 
 # =============================================================================
 #  CONFIGURACIÓN GLOBAL DE ETIQUETA
