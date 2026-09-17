@@ -501,4 +501,4 @@ plt.tight_layout()
 plt.show()
 
 # Guardado final del modelo
-model.save(f'modelos_entrenados/modelo_cnn4_rnn_{NOMBRE_ETIQUETA}_binario.keras')
+model.save(f'modelos_entrenados/modelo_cnn12_rnn_{NOMBRE_ETIQUETA}_binario.keras')
