@@ -15,8 +15,7 @@ from tensorflow.keras import layers, models
 from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping, ModelCheckpoint
 from tensorflow.keras.utils import Sequence
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
-
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, roc_curve, auc
 # =============================================================================
 #  CONFIGURACIÓN GLOBAL DE ETIQUETA
 # =============================================================================
@@ -394,7 +393,7 @@ history = model.fit(train_gen,validation_data=val_gen if len(validation_files) >
 #  TEST Y EVALUACIÓN
 # =============================================================================
 # Generador de datos para el conjunto de prueba 
-test_gen = SignalGeneratorMAT(test_files, batch_size=BATCH_SIZE, n_sequences=n_sequences, insize_per_ep=insize_per_ep, shuffle=False)
+test_gen = SignalGeneratorMAT(test_files, batch_size=BATCH_SIZE, shuffle=False, oversample=False)
 
 print("\n--- EVALUACIÓN FORMAL ---")
 # Evaluación cuantitativa del modelo utilizando las métricas de pérdida
